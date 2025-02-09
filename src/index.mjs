@@ -26,24 +26,18 @@ document.getElementById("dropZone").addEventListener("drop", e => {
         processPDF(file, encryptionKey, socket);
     }
 });
-//
-// socket.onmessage = async (event) => {
-//     const data = JSON.parse(event.data);
-//
-//     if (data.action === "saved") {
-//         console.log(`Bild gespeichert mit ID: ${data.id}`);
-//     } else if (data.action === "retrieve") {
-//         const encryptedBuffer = new Uint8Array(data.encrypted);
-//         const ivBuffer = new Uint8Array(data.iv);
-//         const decrypted = await decryptData(encryptedBuffer.buffer, ivBuffer.buffer, encryptionKey);
-//
-//         const blob = new Blob([decrypted], { type: "image/png" });
-//         const img = document.createElement("img");
-//         img.src = URL.createObjectURL(blob);
-//         img.dataset.id = data.id;
-//         img.onclick = () => deleteImage(img);
-//         document.getElementById("previewContainer").appendChild(img);
-//     }
-// };
+document.getElementById('dropZone').addEventListener('click', function() {
+    document.getElementById('fileInput').click();
+});
+
+
+document.getElementById('uploadButton').addEventListener('click', function() {
+    const file = document.getElementById('fileInput').files[0];
+    if (file) {
+        processPDF(file, encryptionKey, socket);
+    } else {
+        alert('Bitte wählen Sie eine Datei aus.');
+    }
+});
 
 init();

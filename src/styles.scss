@@ -23,3 +23,43 @@ $primary: #33fff8;  // Eigene Primärfarbe setzen
 .slideshow img{
     width: 40%;
 }
+
+body {
+    background-color: #f8f9fa;
+}
+.slideshow {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+#dropZone {
+    border: 2px dashed #007bff;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    color: #007bff;
+    margin: 20px 0;
+    cursor: pointer;
+}
+#dropZone:hover {
+    background-color: #e9f5ff;
+}
+#previewContainer {
+    margin-top: 20px;
+}
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.thumbnail {
+    width: 100px;
+    margin: 5px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+.thumbnail:hover {
+    border-color: #007bff;
+}

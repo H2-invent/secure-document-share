@@ -5,23 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Upload & Anzeige</title>
 
+
 </head>
 <body>
 <div class="body">
-    <div class="container">
-        <h2>PDF hochladen & Seiten anzeigen</h2>
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">PDF hochladen & Seiten anzeigen</h2>
+
+        <!-- Slideshow Section -->
         <div id="slideShowContainer" class="slideshow">
             <div id="slideshow" class="d-flex flex-column align-items-center">
-                <img id="mainImage" src="" alt="Großes Bild">
-                <div id="thumbnails"></div>
+                <img id="mainImage" src="" alt="Großes Bild" class="img-fluid mb-3">
+                <hr>
+                <div id="thumbnails" class="d-flex flex-wrap justify-content-center"></div>
             </div>
         </div>
 
-        <div id="dropZone">PDF hier ablegen</div>
+        <!-- Drop Zone -->
+        <div id="dropZone" class="mb-4">PDF hier ablegen oder <a href="#" data-bs-toggle="modal" data-bs-target="#uploadModal">hier klicken</a> zum Hochladen</div>
+
+        <!-- Preview Container -->
         <div id="previewContainer" class="preview"></div>
+
+        <!-- Document List -->
         <ul id="documentList" class="list-group"></ul>
+
+        <!-- Upload Modal -->
+        <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="uploadModalLabel">PDF hochladen</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="file" id="fileInput" class="form-control" accept="application/pdf">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                        <button type="button" class="btn btn-primary" id="uploadButton">Hochladen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
+<!-- Bootstrap JS and dependencies -->
+
+<!-- Custom JS -->
+<script>
+
+</script>
 </body>
 </html>
