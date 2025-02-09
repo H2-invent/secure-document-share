@@ -1,0 +1,10 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PhpCSValidationInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
+    <inspection_tool class="PhpStanGlobal" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="FULL_PROJECT" value="true" />
+      <option name="config" value="$PROJECT_DIR$/../jitsi-admin/phpstan.neon" />
+    </inspection_tool>
+  </profile>
+</component>
