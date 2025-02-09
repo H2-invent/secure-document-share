@@ -31,4 +31,4 @@ EXPOSE 3000
 
 HEALTHCHECK --timeout=10s CMD curl --silent --fail http://127.0.0.1:3000/ || exit 1
 
-CMD [ "node", "run server" ] 
+CMD [ "node run server" ] 
