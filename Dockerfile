@@ -1,34 +1,28 @@
+# Verwende das offizielle Node.js 20-Image als Basis
 FROM node:23-alpine
 
-ARG VERSION
+# Setze das Arbeitsverzeichnis im Container-Dateisystem
+WORKDIR /usr/src/app
+RUN apk --no-cache add curl
 
-LABEL version="${VERSION}" \
-    Maintainer="H2 invent GmbH" \
-    Description="LookyLooky Application" \
-    org.opencontainers.version="${VERSION}" \
-    org.opencontainers.image.title="LookyLooky" \
-    org.opencontainers.image.license="BSL-2" \
-    org.opencontainers.image.vendor="H2 invent GmbH" \
-    org.opencontainers.image.authors="Emanuel Holzmann <support@h2-invent.com>" \
-    org.opencontainers.image.source="https://github.com/h2-invent/lookylooky" \
-    org.opencontainers.image.documentation="https://h2-invent.com" \
-    org.opencontainers.image.url="https://h2-invent.com"
+# Kopiere die Abhängigkeiten und den Code in das Arbeitsverzeichnis
+COPY package*.json ./
+COPY . .
 
-WORKDIR /opt/app
+# Installiere Development Dependencies
+RUN npm install
 
-COPY --chown=node:node . .
+RUN npm run build
+# Lösche den Node modules Ordner
+RUN rm -rf node_modules
 
-RUN apk --no-cache add \
-    curl \
-    && rm -rf /var/cache/apk/*
+# Installiere nur Production Dependencies
+RUN npm install --only=prod
 
-RUN npm install \
-    npm run build
-
-USER node
-
+RUN ["chmod", "755", "server.mjs"]
 EXPOSE 3000
 
-HEALTHCHECK --timeout=10s CMD curl --silent --fail http://127.0.0.1:3000/ || exit 1
+HEALTHCHECK --interval=10s --timeout=10s --start-period=30s --retries=5 CMD curl --fail http://localhost:3000 || exit 1
 
-CMD [ "npm run server" ] 
+
+CMD [ "npm", "start" ]

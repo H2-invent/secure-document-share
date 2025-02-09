@@ -4,7 +4,7 @@
   "description": "This package creates a service to share pdfs which are converted to images and then shared via a link so it is like a share slideshow",
   "main": "server.js",
   "scripts": {
-    "start": "webpack serve --open",
+    "start": "node server.mjs",
     "build": "webpack --mode production",
     "server": "nodemon server.mjs",
     "watch": "webpack --mode development --watch"
