@@ -20,7 +20,9 @@ app.use(express.static(join(__dirname, "dist")));
 
 // WebSocket-Server erstellen
 const server = app.listen(PORT, () => console.log(`🚀 Server läuft auf http://localhost:${PORT}`));
-const io = new Server(server);
+const io = new Server(server, {
+    maxHttpBufferSize: 1e8, pingTimeout: 60000
+});
 
 app.get("/download/:docId", async (req, res) => {
     const { docId } = req.params;

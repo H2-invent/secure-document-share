@@ -41,6 +41,9 @@ export async function loadDocumentPreviews() {
         shareLink.textContent = "Teilen";
         shareLink.classList.add("btn", "btn-primary", "btn-sm", "mt-2");
         shareLink.setAttribute("target", "_blank");
+        shareLink.addEventListener('click',(event)=>{
+            window.parent.postMessage(JSON.stringify({type:'openNewIframe',url:`${window.location.origin}/view/${docId}#key=${encodedKey}`,title: filename}), "*");
+        })
         const shareLinkText = document.createElement('p');
         shareLinkText.textContent = `${window.location.origin}/view/${docId}#key=${encodedKey}`;
 
