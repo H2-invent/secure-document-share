@@ -21,7 +21,7 @@ RUN apk --no-cache add \
     && rm -rf /var/cache/apk/*
 
 # Kopiere die Abhängigkeiten und den Code in das Arbeitsverzeichnis
-COPY . .
+COPY --chown=nobody . .
 
 # Installiere Development Dependencies
 RUN npm install \
@@ -33,7 +33,7 @@ RUN npm install --only=prod
 
 RUN chmod 755 server.mjs
 
-USER node
+USER nobody
 
 EXPOSE 3000
 
