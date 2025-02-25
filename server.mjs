@@ -93,7 +93,7 @@ io.on("connection", (socket) => {
         writeFileSync(filePath, JSON.stringify({encryptedData,iv }));
         console.log(`📁 Gespeicherte Datei: ${filePath}`);
         // Hier kannst du die Daten speichern oder weiterverarbeiten
-        socket.emit('saved',{id:id});
+        socket.emit('saved',{id:id, page:data.page});
     });
 
     socket.on("startSlideshow", async (data) => {

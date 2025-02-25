@@ -1,12 +1,21 @@
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import "pdfjs-dist/legacy/build/pdf.worker.mjs";
-import {decryptData, encryptData, exportKey} from "./encryption.mjs";
+import { decryptData, encryptData, exportKey } from "./encryption.mjs";
 import { saveDocumentToLocalStorage } from "./db.mjs";
-import {loadDocumentPreviews} from "./createDokumentList.mjs"; // Mini-Datenbank-Funktion
+import { loadDocumentPreviews } from "./createDokumentList.mjs"; // Mini-Datenbank-Funktion
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
+const MAX_UPLOADS = 3;
+let activeUploads = 0;
+
 export async function processPDF(file, encryptionKey, socket) {
+    if (activeUploads >= MAX_UPLOADS) {
+        alert("Es können maximal drei Dokumente gleichzeitig hochgeladen werden.");
+        return;
+    }
+    activeUploads++;
+
     const reader = new FileReader();
 
     reader.onload = async function () {
@@ -17,8 +26,16 @@ export async function processPDF(file, encryptionKey, socket) {
             console.log("📄 PDF geladen:", pdf);
 
             const previewContainer = document.getElementById("previewContainer");
-            const uploadIds = []; // Hier speichern wir die IDs der Bilder
+            const uploadIds = new Array(pdf.numPages).fill(null);
+            socket.on("saved", async (data) => {
+                uploadIds[data.page] = data.id;
 
+                if (!uploadIds.includes(null)) {
+                    await saveDocumentToLocalStorage(file.name, encryptionKey, uploadIds);
+                    loadDocumentPreviews();
+                    activeUploads--;
+                }
+            });
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const canvas = document.createElement("canvas");
@@ -34,20 +51,14 @@ export async function processPDF(file, encryptionKey, socket) {
                 canvas.toBlob(async blob => {
                     const arrayBuffer = await blob.arrayBuffer();
                     const { encrypted, iv } = await encryptData(arrayBuffer, encryptionKey);
-
-                    // Konvertiere in Uint8Array für effiziente Übertragung
-                    const encryptedArray = new Uint8Array(encrypted); // ✅ Fix: ArrayBuffer -> Uint8Array
-
-
+                    const page = i-1;
                     socket.emit("upload", {
                         action: "upload",
+                        page: page,
                         iv: iv.buffer,
-                        encrypted: encryptedArray.buffer // Senden als ArrayBuffer
+                        encrypted: new Uint8Array(encrypted).buffer
                     });
                 }, "image/png");
-
-                // WebSocket antwortet mit der Upload-ID (Listener hinzufügen)
-
 
                 // Vorschaubild im UI anzeigen
                 const img = document.createElement("img");
@@ -56,19 +67,12 @@ export async function processPDF(file, encryptionKey, socket) {
                 img.onclick = () => deleteImage(img);
                 previewContainer.appendChild(img);
             }
-            socket.on('saved',async (data)=> {
-                uploadIds.push(data.id);
 
-                // Speichern, wenn alle Seiten hochgeladen wurden
-                if (uploadIds.length === pdf.numPages) {
-                   await  saveDocumentToLocalStorage(file.name,  encryptionKey, uploadIds);
-                    loadDocumentPreviews();
-                }
-            });
+
         } catch (error) {
             console.error("❌ Fehler beim Laden des PDFs:", error);
+            activeUploads--;
         }
-
     };
 
     reader.readAsArrayBuffer(file);
