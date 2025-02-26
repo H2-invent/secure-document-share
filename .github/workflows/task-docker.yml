@@ -34,7 +34,7 @@ on:
 jobs:
   push_to_registry:
     name: Build and Push
-    runs-on: [DE-NUE-DEV06]
+    runs-on: self-hosted
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
