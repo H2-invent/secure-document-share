@@ -1,0 +1,61 @@
+name: Create Release
+
+env:
+  GITHUB_TOKEN: ${{ secrets.token }}
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  version:
+    name: Generate new Release Version
+    runs-on: [self-hosted, linux]
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: paulhatch/semantic-version@v5.0.2
+        id: version
+        with:
+          tag_prefix: ""
+          major_pattern: "(MAJOR)"
+          minor_pattern: "(MINOR)"
+          change_path: .
+          version_format: "${major}.${minor}.${patch}"
+
+      - name: Create new Release with semantic-version tag
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          prerelease: true
+          name: Release ${{ steps.version.outputs.version }}
+          tag: ${{ steps.version.outputs.version }}
+          body: Building Docker Image ${{ steps.version.outputs.version }} ...
+
+  docker:
+    needs:
+      - version
+    uses: ./.github/workflows/task-docker.yml
+    with:
+      reponame: git.h2-invent.com/private-docker-registry/livekit-middleware
+      dockerfile_path: './Dockerfile'
+      directory: '.'
+      version: ${{ needs.version.outputs.version }}
+      tags: git.h2-invent.com/private-docker-registry/lookylooky:${{ needs.version.outputs.version }},git.h2-invent.com/private-docker-registry/lookylooky:latest
+    secrets:
+      docker_password: ${{ secrets.DOCKER_REGISTRY_TOKEN }}
+      docker_username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
+
+  release:
+    needs:
+      - version
+      - docker
+    uses: ./.github/workflows/task-release.yml
+    with:
+      version: ${{ needs.version.outputs.version }}
