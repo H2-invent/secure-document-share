@@ -4,10 +4,12 @@ import {socket} from "./index.mjs";
 
 const mainImage = document.getElementById("mainImage");
 const thumbnailsContainer = document.getElementById("thumbnails");
+const slideShowContainer = document.getElementById('slideShowContainer');
+
 let encryptionKeySlideshow = null;
 export async function loadSlideshow(id) {
     const { filename, exportedKey, uploadIds } = findDataById(id);
-
+    slideShowContainer.classList.remove('d-none');
     thumbnailsContainer.innerHTML = ""; // Reset Thumbnails
     encryptionKeySlideshow = exportedKey;
     socket.emit("startSlideshow", { docId: id });
@@ -50,10 +52,10 @@ export async function loadSlideshow(id) {
     navContainer.classList.add("d-flex", "justify-content-center", "mb-2");
     navContainer.appendChild(prevButton);
     navContainer.appendChild(nextButton);
+    const navigatorContainer = document.getElementById("navigator");
+    navigatorContainer.innerHTML='';
+    navigatorContainer.insertAdjacentElement('afterbegin',navContainer)
 
-    // Navigation über das Hauptbild einfügen
-    const slideshowContainer = document.getElementById("slideshow");
-    slideshowContainer.insertBefore(navContainer, mainImage);
 
     // Thumbnail-Bilder laden
     for (let i = 0; i < totalImages; i++) {

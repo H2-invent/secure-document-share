@@ -8,8 +8,21 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 const MAX_UPLOADS = 3;
 let activeUploads = 0;
-
+let init = false;
+let uploadIds = null;
 export async function processPDF(file, encryptionKey, socket) {
+    if (init == false){
+        socket.on("saved", async (data) => {
+            uploadIds[data.page] = data.id;
+
+            if (!uploadIds.includes(null)) {
+                await saveDocumentToLocalStorage(file.name, encryptionKey, uploadIds);
+                loadDocumentPreviews();
+                activeUploads--;
+            }
+        });
+        init = true;
+    }
     if (activeUploads >= MAX_UPLOADS) {
         alert("Es können maximal drei Dokumente gleichzeitig hochgeladen werden.");
         return;
@@ -26,16 +39,10 @@ export async function processPDF(file, encryptionKey, socket) {
             console.log("📄 PDF geladen:", pdf);
 
             const previewContainer = document.getElementById("previewContainer");
-            const uploadIds = new Array(pdf.numPages).fill(null);
-            socket.on("saved", async (data) => {
-                uploadIds[data.page] = data.id;
+            previewContainer.innerHTML='';
+            uploadIds = new Array(pdf.numPages).fill(null);
 
-                if (!uploadIds.includes(null)) {
-                    await saveDocumentToLocalStorage(file.name, encryptionKey, uploadIds);
-                    loadDocumentPreviews();
-                    activeUploads--;
-                }
-            });
+
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const canvas = document.createElement("canvas");
