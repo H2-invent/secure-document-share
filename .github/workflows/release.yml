@@ -10,7 +10,7 @@ on:
 
 jobs:
   version:
-    name: Generate new Release Version
+    name: Version & Prerelease
     runs-on: [self-hosted, linux]
     outputs:
       version: ${{ steps.version.outputs.version }}
