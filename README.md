@@ -1,4 +1,4 @@
-# LookyLooky - Secure Document Viewer
+# LookyLooky - Secure PDF Share via Browser
 
 ## Overview
 LookyLooky is a secure document sharing and viewing web application that encrypts documents before uploading them. Users can share documents via unique URLs, and only those with the correct decryption key can access the contents.
