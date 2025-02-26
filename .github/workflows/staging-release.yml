@@ -10,7 +10,7 @@ on:
 
 jobs:
   version:
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
