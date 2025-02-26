@@ -45,7 +45,7 @@ jobs:
       dockerfile_path: './Dockerfile'
       directory: '.'
       version: ${{ needs.version.outputs.version }}
-      tags: git.h2-invent.com/private-docker-registry/lookylooky:${{ needs.version.outputs.version }};git.h2-invent.com/private-docker-registry/lookylooky:development
+      tags: git.h2-invent.com/public-system-design/lookylooky:${{ needs.version.outputs.version }};git.h2-invent.com/public-system-design/lookylooky:development
     secrets:
       docker_password: ${{ secrets.DOCKER_REGISTRY_TOKEN }}
       docker_username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
