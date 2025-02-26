@@ -34,7 +34,7 @@ on:
 jobs:
   push_to_registry:
     name: Build and Push
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux]
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
