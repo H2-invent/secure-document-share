@@ -1,0 +1,23 @@
+name: Release
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'version'
+        required: true
+        type: string
+
+jobs:
+  final_release:
+    name: Publish final Release
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: Publish Release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          prerelease: false
+          name: Release ${{ inputs.version }}
+          tag: ${{ inputs.version }}
+          body: Release Docker Image pushed with following version ${{ inputs.version }}
