@@ -11,6 +11,8 @@ LookyLooky is a secure document sharing and viewing web application that encrypt
 - 📂 **File sharing via secure links**: Share documents without exposing sensitive information.
 - 🖼 **Slideshow mode**: View documents in a slideshow format with real-time updates.
 
+## Screnshots
+![LoockyLoocky screencast](doc/gif/lookylooky.gif)
 ## Installation
 
 ### Prerequisites
