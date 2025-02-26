@@ -34,7 +34,7 @@ jobs:
           name: Release ${{ steps.version.outputs.version }}
           prerelease: true
           tag: ${{ steps.version.outputs.version }}
-          body: Create Docker Image for Staging ${{ steps.version.outputs.version }}
+          body: Building Docker Image ${{ steps.version.outputs.version }} ...
 
   docker:
     needs:
