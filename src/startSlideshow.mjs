@@ -81,11 +81,18 @@ export async function loadSlideshow(id) {
 
 }
 
+
+// Funktion zur Erfassung der Mausposition über dem Bild
 function trackMousePosition(event) {
     if (docId) {
         const rect = mainImage.getBoundingClientRect();
-        const xPercent = ((event.clientX - rect.left) / rect.width) * 100;
-        const yPercent = ((event.clientY - rect.top) / rect.height) * 100;
+        const computedStyle = window.getComputedStyle(mainImage);
+        const paddingLeft = parseFloat(computedStyle.paddingLeft);
+        const paddingTop = parseFloat(computedStyle.paddingTop);
+        const paddingRight = parseFloat(computedStyle.paddingRight);
+        const paddingBottom = parseFloat(computedStyle.paddingBottom);
+        const xPercent = ((event.clientX - rect.left - paddingLeft) / (rect.width-paddingLeft-paddingRight)) * 100;
+        const yPercent = ((event.clientY - rect.top - paddingTop) / (rect.height-paddingTop-paddingBottom)) * 100;
 
         socket.emit("mouseMove", {docId: docId, x: xPercent, y: yPercent});
     }
