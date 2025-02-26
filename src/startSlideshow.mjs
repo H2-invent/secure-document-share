@@ -5,26 +5,29 @@ import {socket} from "./index.mjs";
 const mainImage = document.getElementById("mainImage");
 const thumbnailsContainer = document.getElementById("thumbnails");
 const slideShowContainer = document.getElementById('slideShowContainer');
-
+let docId = null;
 let encryptionKeySlideshow = null;
+
 export async function loadSlideshow(id) {
-    const { filename, exportedKey, uploadIds } = findDataById(id);
+    docId = id;
+    const {filename, exportedKey, uploadIds} = findDataById(id);
     slideShowContainer.classList.remove('d-none');
     thumbnailsContainer.innerHTML = ""; // Reset Thumbnails
     encryptionKeySlideshow = exportedKey;
-    socket.emit("startSlideshow", { docId: id });
+    socket.emit("startSlideshow", {docId: id});
 
     let currentIndex = 0; // Aktuelles Bild
     const totalImages = uploadIds.length;
     const thumbnails = []; // Array zur Speicherung der Thumbnail-Elemente
     await updateMainImage(0);
+
     // Funktion zum Aktualisieren des Hauptbilds und Markierung des Thumbnails
     async function updateMainImage(index) {
         if (index < 0 || index >= totalImages) return; // Begrenzung
         currentIndex = index;
         const decryptedBlob = await downloadImage(uploadIds[currentIndex], exportedKey);
         mainImage.src = URL.createObjectURL(decryptedBlob);
-        socket.emit("changeImage", { docId: id, imageId: uploadIds[currentIndex] });
+        socket.emit("changeImage", {docId: id, imageId: uploadIds[currentIndex]});
 
         // Markierung des aktuellen Thumbnails
         thumbnails.forEach((thumb, i) => {
@@ -53,8 +56,8 @@ export async function loadSlideshow(id) {
     navContainer.appendChild(prevButton);
     navContainer.appendChild(nextButton);
     const navigatorContainer = document.getElementById("navigator");
-    navigatorContainer.innerHTML='';
-    navigatorContainer.insertAdjacentElement('afterbegin',navContainer)
+    navigatorContainer.innerHTML = '';
+    navigatorContainer.insertAdjacentElement('afterbegin', navContainer)
 
 
     // Thumbnail-Bilder laden
@@ -78,4 +81,15 @@ export async function loadSlideshow(id) {
 
 }
 
+function trackMousePosition(event) {
+    if (docId) {
+        const rect = mainImage.getBoundingClientRect();
+        const xPercent = ((event.clientX - rect.left) / rect.width) * 100;
+        const yPercent = ((event.clientY - rect.top) / rect.height) * 100;
+
+        socket.emit("mouseMove", {docId: docId, x: xPercent, y: yPercent});
+    }
+}
+
+mainImage.addEventListener("mousemove", trackMousePosition);
 document.addEventListener("DOMContentLoaded", loadSlideshow);

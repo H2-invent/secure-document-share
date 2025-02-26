@@ -50,3 +50,35 @@ socket.on("newImage", async (data) => {
     mainImage.src = URL.createObjectURL(newDecryptedBlob);
 
 });
+
+// Punkt zur Anzeige der Mausposition erstellen
+const cursorDot = document.createElement("div");
+cursorDot.style.position = "absolute";
+cursorDot.style.width = "10px";
+cursorDot.style.height = "10px";
+cursorDot.style.backgroundColor = "red";
+cursorDot.style.borderRadius = "50%";
+cursorDot.style.pointerEvents = "none";
+cursorDot.style.transform = "translate(-50%, -50%)";
+cursorDot.style.display = "none"; // Standardmäßig ausblenden
+mainImage.parentElement.appendChild(cursorDot);
+
+// Nachrichtenempfang für neue Bilder
+socket.on("newImage", async (data) => {
+    const imageId = data["imageId"];
+    const newDecryptedBlob = await downloadImage(imageId, encryptionKey);
+    mainImage.src = URL.createObjectURL(newDecryptedBlob);
+});
+
+// Nachrichtenempfang für Mausbewegung
+socket.on("pointer", (data) => {
+    if (data.docId !== docId) return;
+
+    const rect = mainImage.getBoundingClientRect();
+    const xPos = (data.x / 100) * rect.width;
+    const yPos = (data.y / 100) * rect.height;
+
+    cursorDot.style.left = `${xPos}px`;
+    cursorDot.style.top = `${yPos}px`;
+    cursorDot.style.display = "block";
+});

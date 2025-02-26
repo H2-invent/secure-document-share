@@ -110,6 +110,9 @@ io.on("connection", (socket) => {
         slideshows.set(data['docId'],data['imageId']);
         io.to(data['docId']).emit('newImage',{'imageId':data['imageId'],'docId': data['docId']});
     })
+    socket.on("mouseMove", async (data) => {
+        io.to(data['docId']).emit('pointer',{'y':data['y'],'x':data['x'],'docId': data['docId']});
+    })
 
     socket.on("disconnect", () => {
         console.log("Client getrennt.");
