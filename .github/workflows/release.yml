@@ -11,7 +11,7 @@ on:
 jobs:
   version:
     name: Version & Prerelease
-    runs-on: [self-hosted, linux]
+    runs-on: [self-hosted, Linux]
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
