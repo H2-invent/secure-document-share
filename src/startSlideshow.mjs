@@ -14,27 +14,35 @@ export async function loadSlideshow(id) {
 
     let currentIndex = 0; // Aktuelles Bild
     const totalImages = uploadIds.length;
-
-    // Funktion zum Aktualisieren des Hauptbilds
+    const thumbnails = []; // Array zur Speicherung der Thumbnail-Elemente
+    await updateMainImage(0);
+    // Funktion zum Aktualisieren des Hauptbilds und Markierung des Thumbnails
     async function updateMainImage(index) {
         if (index < 0 || index >= totalImages) return; // Begrenzung
         currentIndex = index;
         const decryptedBlob = await downloadImage(uploadIds[currentIndex], exportedKey);
         mainImage.src = URL.createObjectURL(decryptedBlob);
         socket.emit("changeImage", { docId: id, imageId: uploadIds[currentIndex] });
+
+        // Markierung des aktuellen Thumbnails
+        thumbnails.forEach((thumb, i) => {
+            if (i === currentIndex) {
+                thumb.classList.add("border", "border-primary", "border-3");
+            } else {
+                thumb.classList.remove("border", "border-primary", "border-3");
+            }
+        });
     }
-    updateMainImage(0);
+
     // Pfeiltasten erstellen
     const prevButton = document.createElement("button");
     prevButton.textContent = "◀";
     prevButton.classList.add("btn", "btn-secondary", "me-2");
-
     prevButton.addEventListener("click", () => updateMainImage(currentIndex - 1));
 
     const nextButton = document.createElement("button");
     nextButton.textContent = "▶";
     nextButton.classList.add("btn", "btn-secondary", "ms-2");
-
     nextButton.addEventListener("click", () => updateMainImage(currentIndex + 1));
 
     // Container für die Navigation über dem Hauptbild
@@ -56,11 +64,12 @@ export async function loadSlideshow(id) {
         img.alt = filename;
         img.style.width = "80px";
         img.style.cursor = "pointer";
-        img.classList.add("m-1", "thumbnail"); // Styling für Abstand
+        img.classList.add("m-1", "thumbnail"); // Grundstyling für Thumbnails
 
         img.addEventListener("click", () => updateMainImage(i));
 
         thumbnailsContainer.appendChild(img);
+        thumbnails.push(img); // Thumbnail in Array speichern
     }
 
     // Erstes Bild als Startbild setzen
