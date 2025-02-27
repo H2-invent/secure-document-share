@@ -39,4 +39,6 @@ EXPOSE 3000
 
 HEALTHCHECK --interval=10s --timeout=10s --start-period=30s --retries=5 CMD curl --fail http://localhost:3000 || exit 1
 
+ENV APP_VERSION=${VERSION}
+
 CMD [ "npm", "start" ]

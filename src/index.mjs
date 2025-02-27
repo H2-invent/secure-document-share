@@ -8,10 +8,14 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js"; // Bootstrap JS (inkl. Poppe
 
 let encryptionKey;
 export const socket = io(); // ✅ Verbindung mit Socket.IO Server
-
+socket.on('version',(data)=>{
+    console.log(data.version);
+    document.getElementById('version').textContent=data.version;
+})
 async function init() {
     encryptionKey = await generateKey();
     await loadDocumentPreviews();
+
 }
 
 document.getElementById("dropZone").addEventListener("dragover", e => {

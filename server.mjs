@@ -7,13 +7,15 @@ import { dirname, join } from "path";
 import fs from "fs/promises";
 import { Server } from 'socket.io';
 import cookie from "cookie";
+import "dotenv/config"; // Lädt automatisch die .env-Datei
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const UPLOAD_DIR = "./output/";
 const app = express();
 const PORT = 3000;
-
+const version = process.env.APP_VERSION ||'not_set';
+console.log(`Running version: ${version}`);
 export const slideshows = new Map();
 // Statische Dateien aus "public/" bereitstellen
 app.use(express.static(join(__dirname, "dist")));
@@ -70,7 +72,7 @@ io.on("connection", (socket) => {
     console.log("Client verbunden!");
     const cookies = cookie.parse(socket.handshake.headers.cookie || "");
     const docId = cookies.docId;
-
+    socket.emit('version',{version});
     if (docId) {
         socket.join(docId);
         console.log(`👤 Client ${socket.id} ist automatisch dem Raum ${docId} beigetreten`);

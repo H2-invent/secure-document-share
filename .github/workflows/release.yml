@@ -43,7 +43,7 @@ jobs:
       - version
     uses: ./.github/workflows/task-docker.yml
     with:
-      reponame: git.h2-invent.com/private-docker-registry/livekit-middleware
+      reponame: git.h2-invent.com/private-docker-registry/lookylooky
       dockerfile_path: './Dockerfile'
       directory: '.'
       version: ${{ needs.version.outputs.version }}
