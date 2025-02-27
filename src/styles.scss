@@ -63,3 +63,13 @@ body {
 .thumbnail:hover {
     border-color: #007bff;
 }
+.progressbar{
+    width: 0;
+    display: flex;
+    justify-content: center;
+    padding: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: bold;
+}

@@ -14,7 +14,7 @@ export async function processPDF(file, encryptionKey, socket) {
     if (init == false){
         socket.on("saved", async (data) => {
             uploadIds[data.page] = data.id;
-
+            updateProgressBar();
             if (!uploadIds.includes(null)) {
                 await saveDocumentToLocalStorage(file.name, encryptionKey, uploadIds);
                 loadDocumentPreviews();
@@ -41,7 +41,7 @@ export async function processPDF(file, encryptionKey, socket) {
             const previewContainer = document.getElementById("previewContainer");
             previewContainer.innerHTML='';
             uploadIds = new Array(pdf.numPages).fill(null);
-
+            createProgressBar(pdf.numPages);
 
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
@@ -84,3 +84,44 @@ export async function processPDF(file, encryptionKey, socket) {
 
     reader.readAsArrayBuffer(file);
 }
+
+
+function createProgressBar(totalPages) {
+    let progressContainer = document.getElementById("progressContainer");
+    if (!progressContainer) {
+        progressContainer = document.createElement("div");
+        progressContainer.id = "progressContainer";
+        progressContainer.style.width = "100%";
+        progressContainer.style.backgroundColor = "#ddd";
+        progressContainer.style.marginTop = "10px";
+        document.body.appendChild(progressContainer);
+    }
+
+    let progressBar = document.getElementById("progressBar");
+    if (!progressBar) {
+        progressBar = document.createElement("div");
+        progressBar.id = "progressBar";
+        progressBar.classList.add('progressbar')
+        progressBar.style.backgroundColor = "#baae41";
+        progressContainer.appendChild(progressBar);
+    }
+    progressBar.textContent='Upload läuft. Bitte warten';
+    progressBar.dataset.totalPages = totalPages;
+    updateProgressBar();
+}
+
+function updateProgressBar() {
+    const progressBar = document.getElementById("progressBar");
+    if (progressBar) {
+        const totalPages = parseInt(progressBar.dataset.totalPages);
+        const uploadedPages = uploadIds.filter(id => id !== null).length;
+        const progress = (uploadedPages / totalPages) * 100;
+        progressBar.style.width = `${progress}%`;
+        if (progress === 100){
+            progressBar.style.backgroundColor='#369f36';
+            progressBar.textContent='Upload abgeschlossen. Klicke deine Präsentation unten an.'
+            document.getElementById('previewContainer').innerHTML= '';
+        }
+    }
+}
+

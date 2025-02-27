@@ -26,18 +26,21 @@ document.getElementById("dropZone").addEventListener("drop", e => {
         processPDF(file, encryptionKey, socket);
     }
 });
-document.getElementById('dropZone').addEventListener('click', function() {
-    document.getElementById('fileInput').click();
-});
+dropZone.addEventListener("click", () => fileInput.click());
 
-
-document.getElementById('uploadButton').addEventListener('click', function() {
-    const file = document.getElementById('fileInput').files[0];
+fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
     if (file) {
         processPDF(file, encryptionKey, socket);
-    } else {
-        alert('Bitte wählen Sie eine Datei aus.');
     }
 });
 
+uploadButton.addEventListener("click", () => {
+    const file = fileInput.files[0];
+    if (file) {
+        processPDF(file, encryptionKey, socket);
+    } else {
+        alert("Bitte wählen Sie eine Datei aus.");
+    }
+});
 init();

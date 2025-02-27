@@ -25,6 +25,7 @@ export async function loadSlideshow(id) {
     async function updateMainImage(index) {
         if (index < 0 || index >= totalImages) return; // Begrenzung
         currentIndex = index;
+
         const decryptedBlob = await downloadImage(uploadIds[currentIndex], exportedKey);
         mainImage.src = URL.createObjectURL(decryptedBlob);
         socket.emit("changeImage", {docId: id, imageId: uploadIds[currentIndex]});
@@ -99,4 +100,3 @@ function trackMousePosition(event) {
 }
 
 mainImage.addEventListener("mousemove", trackMousePosition);
-document.addEventListener("DOMContentLoaded", loadSlideshow);

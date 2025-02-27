@@ -73,18 +73,25 @@
         <div id="slideShowContainer" class="d-none">
             <div id="slideshow">
                 <div id="navigator"></div>
- <img id="mainImage" src="" alt="Start your slideshow by Uploading your first PDF" class="img-fluid card">
+                    <img id="mainImage" src="" alt="Start your slideshow by Uploading your first PDF" class="img-fluid card">
 
 
 
                 <hr>
+
                 <div id="thumbnails" class="d-flex flex-nowrap"></div>
             </div>
         </div>
 
         <!-- Drop Zone -->
-        <div id="dropZone" class="mb-4">PDF hier ablegen oder <a href="#" data-bs-toggle="modal" data-bs-target="#uploadModal">hier klicken</a> zum Hochladen</div>
-
+        <div id="dropZone" class="mb-4">
+            PDF hier ablegen oder
+            <a href="#" id="uploadLink">hier klicken</a> zum Hochladen
+        </div>
+        <input type="file" id="fileInput" style="display: none;" accept="application/pdf">
+        <button id="uploadButton" class="d-none">Datei hochladen</button>
+        <div id="progressContainer">
+        </div>
         <!-- Preview Container -->
         <div id="previewContainer" class="preview"></div>
 
@@ -93,23 +100,7 @@
         <p>Made with Love by <a href="https://h2-invent.com" target="_blank">h2 invent</a> in Lörrach</p>
 
         <!-- Upload Modal -->
-        <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="uploadModalLabel">PDF hochladen</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="file" id="fileInput" class="form-control" accept="application/pdf">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                        <button type="button" class="btn btn-primary" id="uploadButton">Hochladen</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+
     </div>
 </div>
 </body>

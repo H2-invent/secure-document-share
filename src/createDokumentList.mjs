@@ -11,20 +11,24 @@ export async function loadDocumentPreviews() {
     const documents = getDocumentsFromLocalStorage();
 
     for (const docId in documents) {
+        let img = null;
         const { filename, exportedKey, uploadIds } = documents[docId];
+        try {
+            const decryptedBlob = await downloadImage(uploadIds[0], exportedKey);
 
-        const decryptedBlob = await downloadImage(uploadIds[0], exportedKey);
-
-        // Bild im UI anzeigen
-        const img = document.createElement("img");
-        img.src = URL.createObjectURL(decryptedBlob);
-        img.classList.add("pointer", "me-3"); // Abstand zum Text
-        img.alt = filename;
-        img.style.width = "100px";
-        img.addEventListener("click", () => {
-            loadSlideshow(docId);
-        });
-
+            // Bild im UI anzeigen
+             img = document.createElement("img");
+            img.src = URL.createObjectURL(decryptedBlob);
+            img.classList.add("pointer", "me-3"); // Abstand zum Text
+            img.alt = filename;
+            img.style.width = "100px";
+            img.addEventListener("click", () => {
+                loadSlideshow(docId);
+            });
+        }catch (e) {
+            deleteDocumentFromLocalStorage(docId);
+            continue;
+        }
         // Präsentation starten Button
         const startBtn = document.createElement("button");
         startBtn.textContent = "Präsentation starten";
@@ -86,7 +90,10 @@ export async function loadDocumentPreviews() {
         // Container für Bild und Dateiname
         const leftContainer = document.createElement("div");
         leftContainer.classList.add("d-flex", "align-items-center");
-        leftContainer.appendChild(img);
+
+            leftContainer.appendChild(img);
+
+
 
         const fileNameText = document.createElement("span");
         fileNameText.classList.add("fw-bold");
