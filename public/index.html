@@ -8,7 +8,6 @@
         body, html {
             margin: 0;
             padding: 0;
-            height: 100%;
 
         }
         #slideShowContainer {
@@ -67,7 +66,7 @@
 <body>
 <div class="body">
     <div class="container mt-5">
-        <h2 class="text-center mb-4">LookyLooky</h2>
+        <h2 class="text-center mb-4" id="title">LookyLooky</h2>
 
         <!-- Slideshow Section -->
         <div id="slideShowContainer" class="d-none">
@@ -88,6 +87,7 @@
             PDF hier ablegen oder
             <a href="#" id="uploadLink">hier klicken</a> zum Hochladen
         </div>
+        <h2 class="text-danger" id="errorMessage"></h2>
         <input type="file" id="fileInput" style="display: none;" accept="application/pdf">
         <button id="uploadButton" class="d-none">Datei hochladen</button>
         <div id="progressContainer">
