@@ -119,7 +119,7 @@ function updateProgressBar() {
         progressBar.style.width = `${progress}%`;
         if (progress === 100){
             progressBar.style.backgroundColor='#369f36';
-            progressBar.textContent='Upload abgeschlossen. Klicke deine Präsentation unten an.'
+            progressBar.textContent='Upload abgeschlossen. Klicken Sie Ihre Präsentation unten an um diese zu teilen.'
             document.getElementById('previewContainer').innerHTML= '';
         }
     }
