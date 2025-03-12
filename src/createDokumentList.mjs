@@ -40,7 +40,7 @@ export async function loadDocumentPreviews() {
         // Löschbutton
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Löschen";
-        deleteButton.classList.add("btn", "btn-danger", "btn-sm", "me-2");
+        deleteButton.classList.add("btn", "btn-danger", "btn-sm");
         deleteButton.addEventListener("click", () => {
             deleteDocumentFromLocalStorage(docId);
             loadDocumentPreviews(); // Aktualisiert die Liste
@@ -54,24 +54,33 @@ export async function loadDocumentPreviews() {
 
         const shareUrl = `${window.location.origin}/view/${docId}#key=${encodedKey}`;
 
-        const shareLink = document.createElement("button");
-        shareLink.textContent = "Link teilen";
-        shareLink.classList.add("btn", "btn-secondary", "btn-sm");
-        shareLink.addEventListener("click", async (event) => {
+
+
+        const isInIframe = window.self !== window.top;
+        const shareButton = document.createElement("button");
+
+        shareButton.textContent = isInIframe ? "Präsentation bei allen Teilnehmern anzeigen" : "Link teilen";
+        shareButton.classList.add("btn", "btn-secondary", "btn-sm","me-2");
+
+        shareButton.addEventListener("click", async (event) => {
             event.preventDefault();
 
             try {
-                await navigator.clipboard.writeText(shareUrl);
-                alert("Link wurde in die Zwischenablage kopiert!");
-
-                window.parent.postMessage(
-                    JSON.stringify({
-                        type: "openNewIframe",
-                        url: shareUrl,
-                        title: filename,
-                    }),
-                    "*"
-                );
+                if (isInIframe) {
+                    loadSlideshow(docId);
+                    window.parent.postMessage(
+                        JSON.stringify({
+                            type: "openNewIframeOnOthers",
+                            url: shareUrl,
+                            title: filename,
+                        }),
+                        "*"
+                    );
+                } else {
+                    await navigator.clipboard.writeText(shareUrl);
+                    // Bootstrap Modal erstellen und anzeigen
+                    alert("Link wurde in die Zwischenablage kopiert!");
+                }
             } catch (err) {
                 console.error("Fehler beim Kopieren in die Zwischenablage:", err);
                 alert("Kopieren in die Zwischenablage fehlgeschlagen.");
@@ -103,8 +112,8 @@ export async function loadDocumentPreviews() {
         // Container für die Buttons
         const rightContainer = document.createElement("div");
         rightContainer.appendChild(startBtn);
+        rightContainer.appendChild(shareButton);
         rightContainer.appendChild(deleteButton);
-        rightContainer.appendChild(shareLink);
 
         // Elemente zusammenfügen
         listItem.appendChild(leftContainer);

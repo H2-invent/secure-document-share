@@ -1,5 +1,13 @@
 import {exportKey} from "./encryption.mjs";
+export async function checkDB(){
+    try {
+        localStorage.setItem('dummyData',true);
+    }catch (e) {
+        document.getElementById('dropZone').remove();
+        document.getElementById('errorMessage').textContent='Bitte aktivieren Sie Third Party Cookies, damit Sie LookyLooky in einem Iframe verwenden können.';
+    }
 
+}
 export async function saveDocumentToLocalStorage(filename, key, uploadIds) {
     const db = JSON.parse(localStorage.getItem("pdfDB")) || {};
     const exportedKey = await exportKey(key);

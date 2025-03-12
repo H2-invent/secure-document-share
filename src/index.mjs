@@ -4,7 +4,8 @@ import "./styles.scss";
 import {loadDocumentPreviews} from "./createDokumentList.mjs";
 
 import { io } from "socket.io-client"; // ✅ Socket.IO Client einbinden
-import "bootstrap/dist/js/bootstrap.bundle.min.js"; // Bootstrap JS (inkl. Popper.js)
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import {checkDB} from "./db.mjs"; // Bootstrap JS (inkl. Popper.js)
 
 let encryptionKey;
 export const socket = io(); // ✅ Verbindung mit Socket.IO Server
@@ -13,9 +14,13 @@ socket.on('version',(data)=>{
     document.getElementById('version').textContent=data.version;
 })
 async function init() {
+    checkDB();
     encryptionKey = await generateKey();
     await loadDocumentPreviews();
-
+    const isInIframe = window.self !== window.top;
+    if (isInIframe){
+        document.getElementById('title').remove();
+    }
 }
 
 document.getElementById("dropZone").addEventListener("dragover", e => {
