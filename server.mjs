@@ -61,7 +61,12 @@ app.get("/view/:docId", (req, res) => {
     }
 
     // Cookie mit der docId setzen (Gültigkeit: 1 Tag)
-    res.cookie("docId", docId, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: "none" });
+    res.cookie("docId", docId, {
+        maxAge: 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        sameSite: "none",
+        secure: "false"
+    });
 
     res.sendFile(join(__dirname, "dist", "view.html"));
 });
