@@ -3,8 +3,8 @@ name: Publish Docker Image
 on:
   workflow_call:
     inputs:
-      reponame:
-        description: 'the image name of the docker hub image'
+      registry:
+        description: 'Login Registry'
         required: true
         type: string
       directory:
@@ -42,7 +42,7 @@ jobs:
       - name: Log in to Docker Registry
         uses: docker/login-action@v3
         with:
-          registry: git.h2-invent.com
+          registry: ${{ inputs.registry }}
           username: ${{ secrets.docker_username }}
           password: ${{ secrets.docker_password }}
 
