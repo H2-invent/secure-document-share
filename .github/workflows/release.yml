@@ -43,14 +43,14 @@ jobs:
       - version
     uses: ./.github/workflows/task-docker.yml
     with:
-      reponame: git.h2-invent.com/private-docker-registry/lookylooky
+      registry: reg.h2-invent.com
       dockerfile_path: './Dockerfile'
       directory: '.'
       version: ${{ needs.version.outputs.version }}
-      tags: git.h2-invent.com/public-system-design/lookylooky:${{ needs.version.outputs.version }},git.h2-invent.com/public-system-design/lookylooky:latest
+      tags: reg.h2-invent.com/secure-document-share/core:${{ needs.version.outputs.version }};reg.h2-invent.com/secure-document-share/core:latest
     secrets:
-      docker_password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
-      docker_username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
+      docker_password: ${{ secrets.HARBOR_PUSH_PASSWORD }}
+      docker_username: ${{ secrets.HARBOR_PUSH_USERNAME }}
 
   release:
     needs:
