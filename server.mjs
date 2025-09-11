@@ -7,6 +7,7 @@ import { dirname, join } from "path";
 import fs from "fs/promises";
 import { Server } from 'socket.io';
 import cookie from "cookie";
+import cors from "cors";
 import "dotenv/config"; // Lädt automatisch die .env-Datei
 
 const __filename = fileURLToPath(import.meta.url);
@@ -19,6 +20,14 @@ console.log(`Running version: ${version}`);
 export const slideshows = new Map();
 // Statische Dateien aus "public/" bereitstellen
 app.use(express.static(join(__dirname, "dist")));
+
+app.use(
+    cors({
+        origin: "*",
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+    })
+);
 
 // WebSocket-Server erstellen
 const server = app.listen(PORT, () => console.log(`🚀 Server läuft auf http://localhost:${PORT}`));
