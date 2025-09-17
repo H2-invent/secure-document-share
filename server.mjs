@@ -1,186 +1,205 @@
 import express from "express";
-import { WebSocketServer } from "ws";
-import { writeFileSync, readFileSync, unlinkSync, existsSync } from "fs";
-import { randomUUID } from "crypto";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import {writeFileSync} from "fs";
+import {randomUUID} from "crypto";
+import {fileURLToPath} from "url";
+import {dirname, join} from "path";
 import fs from "fs/promises";
-import { Server } from 'socket.io';
-import cookie from "cookie";
+import {Server} from 'socket.io';
 import cors from "cors";
-import "dotenv/config"; // Lädt automatisch die .env-Datei
+import "dotenv/config";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const UPLOAD_DIR = "./output/";
 const app = express();
 const PORT = 3000;
-const version = process.env.APP_VERSION ||'not_set';
+const version = process.env.APP_VERSION || 'not_set';
+const slideshows = new Map();
+
 console.log(`Running version: ${version}`);
-export const slideshows = new Map();
-// Statische Dateien aus "public/" bereitstellen
+
 app.use(express.static(join(__dirname, "dist")));
 
-app.use(
-    cors({
-        origin: "*",
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-    })
-);
-
-// WebSocket-Server erstellen
-const server = app.listen(PORT, () => console.log(`🚀 Server läuft auf http://localhost:${PORT}`));
-const io = new Server(server, {
-    maxHttpBufferSize: 1e8, pingTimeout: 60000
-});
+app.use(cors({
+    origin: (origin, callback) => {
+        callback(null, origin || "*"); // allow the requesting origin dynamically
+    },
+    credentials: true, // required for cookies
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+}));
 
 app.get("/download/:docId", async (req, res) => {
-    const { docId } = req.params;
+    const {docId} = req.params;
     const filePath = join(__dirname, UPLOAD_DIR, `${docId}.bin`);
 
     try {
         const encryptedData = await fs.readFile(filePath);
-
-        // Die Datei enthält ein JSON-Objekt mit verschlüsselten Daten und IV
         const parsedData = JSON.parse(encryptedData.toString());
 
         if (!parsedData.encryptedData || !parsedData.iv) {
-            throw new Error("Ungültiges Dateiformat");
+            throw new Error("Invalid file format");
         }
 
         const encryptedArray = Uint8Array.from(Object.values(parsedData.encryptedData));
         const ivArray = Uint8Array.from(Object.values(parsedData.iv));
 
-        res.json({ encryptedArray: Array.from(encryptedArray), ivArray: Array.from(ivArray) });
+        res.json({encryptedArray: Array.from(encryptedArray), ivArray: Array.from(ivArray)});
     } catch (error) {
-        console.error("Fehler beim Laden der Datei:", error);
-        res.status(500).json({ error: "Fehler beim Abrufen der Datei" });
+        console.error("Error loading file:", error);
+        res.status(500).json({error: "Error retrieving file"});
     }
 });
 
-app.get("/", (req, res) => {
-    res.sendFile(join(__dirname, "dist", "index.html"));
+// Create WebSocket server
+const server = app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+const io = new Server(server, {
+    maxHttpBufferSize: 1e8, pingTimeout: 60000
 });
-app.get("/view/:docId", (req, res) => {
-    const docId = req.params.docId;
+const channels = new Map();
 
-    if (!docId) {
-        return res.status(400).send("Fehlende Dokument-ID");
+function handleJoin(socket, docId) {
+    socket.join(docId);
+
+    if (slideshows.get(docId)) {
+        socket.emit('newImage', {'imageId': slideshows.get(docId), 'docId': docId});
+
     }
 
-    // Cookie mit der docId setzen (Gültigkeit: 1 Tag)
-    res.cookie("docId", docId, {
-        maxAge: 24 * 60 * 60 * 1000,
-        httpOnly: true,
-        sameSite: "none",
-        secure: "false"
-    });
-
-    res.sendFile(join(__dirname, "dist", "view.html"));
-});
-
-
+    socket.emit('joinSuccess', {message: 'Channel joined.'});
+    console.log(`Client ${socket.id} joined channel ${docId}`);
+}
 
 io.on("connection", (socket) => {
-    console.log("Client verbunden!");
-    const cookies = cookie.parse(socket.handshake.headers.cookie || "");
-    const docId = cookies.docId;
-    socket.emit('version',{version});
-    if (docId) {
-        socket.join(docId);
-        console.log(`👤 Client ${socket.id} ist automatisch dem Raum ${docId} beigetreten`);
-        console.log(slideshows);
-        socket.emit('newImage',{'imageId':slideshows.get(docId), 'docId': docId});
-    } else {
-        console.log(`⚠️ Kein docId-Cookie für Client ${socket.id} gefunden`);
+    console.log(`Client ${socket.id} connected!`);
+    let channelName = socket.handshake.query.channel;
+
+    if (!channels.has(channelName)) {
+        channels.set(channelName, {subscribers: new Set(), publishers: new Map(), docIds: new Set()});
     }
 
-    socket.on("upload", async (data) => {
-        console.log(`📥 Upload empfangen (Seite ${data.page})`);
+    const channel = channels.get(channelName);
+    channel.subscribers.add(socket.id);
 
-        // Die verschlüsselten Binärdaten sind direkt verfügbar
+    if (channel.docIds.size > 0) {
+        for (const docId of channel.docIds) {
+            handleJoin(socket, docId);
+        }
+    }
+
+    console.log("Channels:", channels);
+
+    socket.emit('version', {version});
+
+    socket.on("upload", async (data) => {
+        console.log(`Upload received (page ${data.page})`);
+
+        // The encrypted binary data is directly available
         const encryptedData = new Uint8Array(data.encrypted);
         const iv = new Uint8Array(data.iv);
-        console.log(`Binärdaten erhalten: ${encryptedData.length} Bytes`);
+        console.log(`Received binary data: ${encryptedData.length} bytes`);
         const id = randomUUID();
         const filePath = join(__dirname, UPLOAD_DIR, `${id}.bin`);
 
-        writeFileSync(filePath, JSON.stringify({encryptedData,iv }));
-        console.log(`📁 Gespeicherte Datei: ${filePath}`);
-        // Hier kannst du die Daten speichern oder weiterverarbeiten
-        socket.emit('saved',{id:id, page:data.page});
+        writeFileSync(filePath, JSON.stringify({encryptedData, iv}));
+        console.log(`Saved file: ${filePath}`);
+        // Here you can save or further process the data
+        socket.emit('saved', {id: id, page: data.page});
+
+        console.log("Channels:", channels);
     });
 
     socket.on("startSlideshow", async (data) => {
-        slideshows.set(data['docId'],'');
-        socket.join(data['docId']);
-    })
+        console.log(`Slideshow started with ID: ${data['docId']}`);
 
-    socket.on("joinRoom", (docId) => {
-        socket.join(docId);
-        console.log(`👤 Client ${socket.id} ist dem Raum ${docId} beigetreten`);
+        channel.publishers.set(socket.id, data['docId']);
+        channel.docIds.add(data['docId']);
+        slideshows.set(data['docId'], '');
+        socket.join(data['docId']);
+
+        console.log("Channels:", channels);
+    });
+
+    socket.on("stopSlideshow", async (data) => {
+        console.log(`Slideshow stopped with ID: ${data['docId']}`);
+
+        io.to(data['docId']).emit('slideshowStopped', {'docId': data['docId']});
+
+        slideshows.delete(data['docId']);
+        channel.publishers.delete(socket.id);
+        channel.docIds.delete(data['docId']);
+
+        const roomSockets = io.sockets.adapter.rooms.get(data['docId']);
+        if (roomSockets) {
+            for (const socketId of roomSockets) {
+                const clientSocket = io.sockets.sockets.get(socketId);
+                if (clientSocket) {
+                    clientSocket.leave(data['docId']);
+                    console.log(`Client ${socketId} removed from channel ${data['docId']}`);
+                }
+            }
+        }
+
+        console.log("Channels:", channels);
+    });
+
+    socket.on("join", async (data) => {
+        if (!slideshows.has(data['docId'])) {
+            socket.emit('joinError', {message: 'Channel is not open.'});
+            return;
+        }
+
+        handleJoin(socket, data['docId']);
+
+        console.log("Channels:", channels);
     });
 
     socket.on("changeImage", async (data) => {
-        slideshows.set(data['docId'],data['imageId']);
-        io.to(data['docId']).emit('newImage',{'imageId':data['imageId'],'docId': data['docId']});
+        console.log(`Image changed in channel ${data['docId']} to image ${data['imageId']}`);
+
+        slideshows.set(data['docId'], data['imageId']);
+        io.to(data['docId']).emit('newImage', {'imageId': data['imageId'], 'docId': data['docId']});
+
+        console.log("Channels:", channels);
     })
-    socket.on("mouseMove", async (data) => {
-        io.to(data['docId']).emit('pointer',{'y':data['y'],'x':data['x'],'docId': data['docId']});
+
+    socket.on("pointerMove", async (data) => {
+        io.to(data['docId']).emit('pointerMove', {'y': data['y'], 'x': data['x'], 'docId': data['docId']});
+
+        // console.log(`Pointer moved in channel ${data['docId']} to x:${data['x']} y:${data['y']}`);
+    })
+
+    socket.on("pointerOut", async (data) => {
+        io.to(data['docId']).emit('pointerOut', {'docId': data['docId']});
+
+        // console.log(`Pointer moved in channel ${data['docId']} to x:${data['x']} y:${data['y']}`);
+    })
+
+    socket.on("pointerClick", async (data) => {
+        io.to(data['docId']).emit('pointerClick', {'docId': data['docId']});
+
+        // console.log(`Pointer moved in channel ${data['docId']} to x:${data['x']} y:${data['y']}`);
     })
 
     socket.on("disconnect", () => {
-        console.log("Client getrennt.");
+        console.log(`Client ${socket.id} disconnected`);
+
+        channel.subscribers.delete(socket.id);
+
+        if (channel.publishers.has(socket.id)) {
+            const docId = channel.publishers.get(socket.id);
+
+            io.to(docId).emit('slideshowStopped', {'docId': docId});
+            channel.docIds.delete(docId);
+            channel.publishers.delete(socket.id);
+            slideshows.delete(docId);
+        }
+
+        if (channel.subscribers.size === 0) {
+            channels.delete(channelName);
+            console.log(`Channel ${channelName} removed from channels due to no subscribers`);
+        }
+
+        console.log("Channels:", channels);
     });
 });
-
-
-//
-// // WebSocket-Handling
-// wss.on("connection", ws => {
-//
-//
-//     ws.on("message", async data => {
-//         const message = JSON.parse(data);
-// // R-AS 2599 hat auf der autobahn gedrängelt. Ups ich glaube, ich habe den Kommentar vergessen
-//
-//         if (message.action === "upload") {
-//             const { page, iv, encrypted } = message;
-//             console.log(message);
-//             const id = randomUUID();
-//             const filePath = join(__dirname, UPLOAD_DIR, `${id}.bin`);
-//
-//             writeFileSync(filePath, JSON.stringify({encrypted }));
-//             console.log(`📁 Gespeicherte Datei: ${filePath}`);
-//
-//             ws.send(JSON.stringify({ action: "saved", id }));
-//             return;
-//         }
-//
-//         if (message.action === "retrieve") {
-//             const filePath = join(__dirname, "output", `${message.id}.bin`);
-//             if (existsSync(filePath)) {
-//                 const fileData = JSON.parse(readFileSync(filePath));
-//                 ws.send(JSON.stringify({
-//                     action: "retrieve",
-//                     id: message.id,
-//                     encrypted: fileData.encrypted,
-//                     iv: fileData.iv
-//                 }));
-//             }
-//             return;
-//         }
-//
-//         if (message.action === "delete") {
-//             const filePath = join(__dirname, "output", `${message.id}.bin`);
-//             if (existsSync(filePath)) {
-//                 unlinkSync(filePath);
-//                 console.log(`🗑️ Datei ${filePath} gelöscht`);
-//             }
-//             return;
-//         }
-//     });
-//
-//     ws.on("close", () => console.log("Client getrennt"));
-// });
