@@ -29,6 +29,28 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
+app.get("/", (req, res) => {
+    res.sendFile(join(__dirname, "dist", "index.html"));
+});
+
+app.get("/view/:docId", (req, res) => {
+    const docId = req.params.docId;
+
+    if (!docId) {
+        return res.status(400).send("Fehlende Dokument-ID");
+    }
+
+    // Cookie mit der docId setzen (Gültigkeit: 1 Tag)
+    res.cookie("docId", docId, {
+        maxAge: 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        sameSite: "none",
+        secure: "false"
+    });
+
+    res.sendFile(join(__dirname, "dist", "view.html"));
+});
+
 app.get("/download/:docId", async (req, res) => {
     const {docId} = req.params;
     const filePath = join(__dirname, UPLOAD_DIR, `${docId}.bin`);
