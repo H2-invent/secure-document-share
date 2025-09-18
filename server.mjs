@@ -85,10 +85,9 @@ function handleJoin(socket, docId) {
 
     if (slideshows.get(docId)) {
         socket.emit('newImage', {'imageId': slideshows.get(docId), 'docId': docId});
-
     }
 
-    socket.emit('joinSuccess', {message: 'Channel joined.'});
+    socket.emit('joinSuccess', {docId: docId});
     console.log(`Client ${socket.id} joined channel ${docId}`);
 }
 
