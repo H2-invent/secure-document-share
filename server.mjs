@@ -94,7 +94,7 @@ function handleJoin(socket, docId) {
 
 io.on("connection", (socket) => {
     console.log(`Client ${socket.id} connected!`);
-    let channelName = socket.handshake.query.channel;
+    let channelName = socket.handshake.query.channel ?? 'default';
 
     if (!channels.has(channelName)) {
         channels.set(channelName, {subscribers: new Set(), publishers: new Map(), docIds: new Set()});
