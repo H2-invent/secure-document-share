@@ -95,8 +95,8 @@ function trackMousePosition(event) {
         const xPercent = ((event.clientX - rect.left - paddingLeft) / (rect.width-paddingLeft-paddingRight)) * 100;
         const yPercent = ((event.clientY - rect.top - paddingTop) / (rect.height-paddingTop-paddingBottom)) * 100;
 
-        socket.emit("mouseMove", {docId: docId, x: xPercent, y: yPercent});
+        socket.emit("pointerMove", {docId: docId, x: xPercent, y: yPercent});
     }
 }
 
-mainImage.addEventListener("mousemove", trackMousePosition);
+mainImage.addEventListener("pointerMove", trackMousePosition);
