@@ -11,7 +11,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const UPLOAD_DIR = "./data/";
 const app = express();
-const PORT = 3000;
+const DEFAULT_PORT = 3000;
+const argPort = process.argv.find(arg => arg.startsWith("--port="));
+const PORT = argPort ? parseInt(argPort.split("=")[1], 10) : (process.env.PORT || DEFAULT_PORT);
 const version = process.env.APP_VERSION || "not_set";
 const slideshows = new Map();
 
