@@ -44,17 +44,17 @@ app.get("/download/:docId", async (req, res) => {
     }
 });
 
-app.get("/delete/:docId", async (req, res) => {
-    const { docId } = req.params;
-    const filePath = join(__dirname, UPLOAD_DIR, `${docId}.bin`);
-    try {
-        await fs.unlink(filePath);
-        res.json({ success: true, message: `File ${docId}.bin deleted.` });
-    } catch (error) {
-        console.error("Error deleting file:", error);
-        res.status(404).json({ success: false, error: "File not found or could not be deleted." });
-    }
-});
+// app.get("/delete/:docId", async (req, res) => {
+//     const { docId } = req.params;
+//     const filePath = join(__dirname, UPLOAD_DIR, `${docId}.bin`);
+//     try {
+//         await fs.unlink(filePath);
+//         res.json({ success: true, message: `File ${docId}.bin deleted.` });
+//     } catch (error) {
+//         console.error("Error deleting file:", error);
+//         res.status(404).json({ success: false, error: "File not found or could not be deleted." });
+//     }
+// });
 
 const server = app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
 const io = new Server(server, { maxHttpBufferSize: 1e8, pingTimeout: 60000 });
