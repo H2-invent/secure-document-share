@@ -23,13 +23,14 @@ Ensure you have the following installed:
    ```sh
    npm install
    ```
-3. **Build the project**
-   ```sh
-   npm run build
-   ```
-4. **Start the server**
+3. **Start the server**
    ```sh
    npm start
+   ```
+   Or with setting a specific port
+
+   ```sh
+   node server.mjs --port=<port>
    ```
 
 ## Contributing
