@@ -24,9 +24,9 @@ RUN apk --no-cache add \
 COPY --chown=nobody . .
 
 # Installiere Development Dependencies
-RUN npm install \
-    && npm run build \
-    && rm -rf node_modules
+#RUN npm install \
+#    && npm run build \
+#    && rm -rf node_modules
 
 # Installiere nur Production Dependencies
 RUN npm install --only=prod
