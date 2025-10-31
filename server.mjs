@@ -105,11 +105,11 @@ io.on("connection", (socket) => {
     });
 
     socket.on("startSlideshow", (data) => {
-        const { docId } = data;
+        const { docId, imageId } = data;
         console.log(`Slideshow started with ID: ${docId}`);
         channel.publishers.set(socket.id, docId);
         channel.docIds.add(docId);
-        slideshows.set(docId, "");
+        slideshows.set(docId, imageId);
         socket.join(docId);
         console.log("Channels:", channels);
     });
