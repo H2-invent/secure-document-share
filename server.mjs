@@ -30,6 +30,10 @@ app.use(
     })
 );
 
+app.get("/health/check", async (req, res) => {
+    res.json('OK');
+});
+
 app.get("/download/:docId", async (req, res) => {
     const { docId } = req.params;
     const filePath = join(__dirname, UPLOAD_DIR, `${docId}.bin`);
