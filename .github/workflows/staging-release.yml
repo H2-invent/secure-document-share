@@ -45,7 +45,7 @@ jobs:
       dockerfile_path: './Dockerfile'
       directory: '.'
       version: ${{ needs.version.outputs.version }}
-      tags: reg.h2-invent.com/secure-document-share/core:${{ needs.version.outputs.version }};reg.h2-invent.com/secure-document-share/core:development
+      tags: reg.h2-invent.com/secure-document-share/core:${{ needs.version.outputs.version }},reg.h2-invent.com/secure-document-share/core:development
     secrets:
       docker_password: ${{ secrets.HARBOR_PUSH_PASSWORD }}
       docker_username: ${{ secrets.HARBOR_PUSH_USERNAME }}
