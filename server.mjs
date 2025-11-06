@@ -145,6 +145,7 @@ io.on("connection", (socket) => {
             return;
         }
         handleJoin(socket, docId);
+        io.to(docId).emit("userJoined", { docId, userId: socket.id });
         console.log("Channels:", channels);
     });
 
@@ -174,6 +175,9 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
         console.log(`Client ${socket.id} disconnected`);
         channel.subscribers.delete(socket.id);
+        for (const docId of channel.docIds) {
+            io.to(docId).emit("userDisconnected", { docId, userId: socket.id });
+        }
         if (channel.publishers.has(socket.id)) {
             const docId = channel.publishers.get(socket.id);
             io.to(docId).emit("slideshowStopped", { docId });
