@@ -16,8 +16,9 @@ const argPort = process.argv.find(arg => arg.startsWith("--port="));
 const PORT = argPort ? parseInt(argPort.split("=")[1], 10) : (process.env.PORT || DEFAULT_PORT);
 const version = process.env.APP_VERSION || "not_set";
 const slideshows = new Map();
+const MAX_CONCURRENT_WRITES = 5;
+let activeWrites = 0;
 const uploadQueue = [];
-let isWriting = false;
 
 console.log(`Running version: ${version}`);
 
@@ -69,9 +70,10 @@ const io = new Server(server, { maxHttpBufferSize: 1e8, pingTimeout: 60000 });
 const channels = new Map();
 
 async function processUploadQueue() {
-    if (isWriting || uploadQueue.length === 0) return;
-    isWriting = true;
+    if (activeWrites >= MAX_CONCURRENT_WRITES || uploadQueue.length === 0) return;
+    activeWrites++;
     const { socket, data } = uploadQueue.shift();
+
     try {
         const encryptedData = new Uint8Array(data.encrypted);
         const iv = new Uint8Array(data.iv);
@@ -82,9 +84,10 @@ async function processUploadQueue() {
     } catch (err) {
         console.error("Upload error:", err);
         socket.emit("error", { message: "Upload failed" });
+    } finally {
+        activeWrites--;
+        processUploadQueue();
     }
-    isWriting = false;
-    processUploadQueue();
 }
 
 function handleJoin(socket, docId) {
