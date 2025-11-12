@@ -41,12 +41,9 @@ app.get("/download/:docId", async (req, res) => {
     const { docId } = req.params;
     const filePath = join(__dirname, UPLOAD_DIR, `${docId}.bin`);
     try {
-        const encryptedData = await fs.readFile(filePath);
-        const parsedData = JSON.parse(encryptedData.toString());
-        if (!parsedData.encryptedData || !parsedData.iv) throw new Error("Invalid file format");
-        const encryptedArray = Uint8Array.from(Object.values(parsedData.encryptedData));
-        const ivArray = Uint8Array.from(Object.values(parsedData.iv));
-        res.json({ encryptedArray: Array.from(encryptedArray), ivArray: Array.from(ivArray) });
+        const data = await fs.readFile(filePath);
+        res.setHeader("Content-Type", "application/octet-stream");
+        res.send(data);
     } catch (error) {
         console.error("Error loading file:", error);
         res.status(500).json({ error: "Error retrieving file" });
@@ -79,7 +76,12 @@ async function processUploadQueue() {
         const iv = new Uint8Array(data.iv);
         const id = randomUUID();
         const filePath = join(__dirname, UPLOAD_DIR, `${id}.bin`);
-        await fs.writeFile(filePath, JSON.stringify({ encryptedData, iv }));
+        // await fs.writeFile(filePath, JSON.stringify({ encryptedData, iv }));
+        const combined = Buffer.concat([
+            Buffer.from(iv),
+            Buffer.from(encryptedData)
+        ]);
+        await fs.writeFile(filePath, combined);
         socket.emit("saved", { id, page: data.page });
     } catch (err) {
         console.error("Upload error:", err);
