@@ -16,6 +16,8 @@ const argPort = process.argv.find(arg => arg.startsWith("--port="));
 const PORT = argPort ? parseInt(argPort.split("=")[1], 10) : (process.env.PORT || DEFAULT_PORT);
 const version = process.env.APP_VERSION || "not_set";
 const slideshows = new Map();
+const uploadQueue = [];
+let isWriting = false;
 
 console.log(`Running version: ${version}`);
 
@@ -66,6 +68,25 @@ const server = app.listen(PORT, () => console.log(`Server running at http://loca
 const io = new Server(server, { maxHttpBufferSize: 1e8, pingTimeout: 60000 });
 const channels = new Map();
 
+async function processUploadQueue() {
+    if (isWriting || uploadQueue.length === 0) return;
+    isWriting = true;
+    const { socket, data } = uploadQueue.shift();
+    try {
+        const encryptedData = new Uint8Array(data.encrypted);
+        const iv = new Uint8Array(data.iv);
+        const id = randomUUID();
+        const filePath = join(__dirname, UPLOAD_DIR, `${id}.bin`);
+        await fs.writeFile(filePath, JSON.stringify({ encryptedData, iv }));
+        socket.emit("saved", { id, page: data.page });
+    } catch (err) {
+        console.error("Upload error:", err);
+        socket.emit("error", { message: "Upload failed" });
+    }
+    isWriting = false;
+    processUploadQueue();
+}
+
 function handleJoin(socket, docId) {
     socket.join(docId);
     if (slideshows.has(docId)) {
@@ -91,21 +112,9 @@ io.on("connection", (socket) => {
     console.log("Channels:", channels);
     socket.emit("version", { version });
 
-    socket.on("upload", async (data) => {
-        try {
-            console.log(`Upload received (page ${data.page})`);
-            const encryptedData = new Uint8Array(data.encrypted);
-            const iv = new Uint8Array(data.iv);
-            const id = randomUUID();
-            const filePath = join(__dirname, UPLOAD_DIR, `${id}.bin`);
-            await fs.writeFile(filePath, JSON.stringify({ encryptedData, iv }));
-            console.log(`Saved file: ${filePath}`);
-            socket.emit("saved", { id, page: data.page });
-        } catch (err) {
-            console.error("Upload error:", err);
-            socket.emit("error", { message: "Upload failed" });
-        }
-        console.log("Channels:", channels);
+    socket.on("upload", (data) => {
+        uploadQueue.push({ socket, data });
+        processUploadQueue();
     });
 
     socket.on("startSlideshow", (data) => {
